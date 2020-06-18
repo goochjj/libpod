@@ -4,8 +4,11 @@ package utils
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/containers/libpod/pkg/cgroups"
@@ -13,6 +16,7 @@ import (
 	systemdDbus "github.com/coreos/go-systemd/v22/dbus"
 	"github.com/godbus/dbus/v5"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // RunUnderSystemdScope adds the specified pid to a systemd scope
@@ -84,6 +88,42 @@ func GetPidCgroup(pid int) (string, error) {
 		return "", errors.Errorf("could not find cgroup v2 mount in %q", procFile)
 	}
 	return cgroup, nil
+
+}
+
+// MoveUnderCgroupSubtree moves the PID under a cgroup subtree.
+func MoveToCgroup2(cgroup string,subtree string) error {
+	cgroupRoot := "/sys/fs/cgroup"
+	unified, err := cgroups.IsCgroup2UnifiedMode()
+	if err != nil {
+		return err
+	}
+	if (!unified) {
+		return nil
+	}
+
+	processes, err := ioutil.ReadFile(filepath.Join(cgroupRoot, cgroup, "cgroup.procs"))
+	if err != nil {
+		return err
+	}
+
+	newCgroup := filepath.Join(cgroupRoot, cgroup, subtree)
+	if err := os.Mkdir(newCgroup, 0755); err != nil {
+		return err
+	}
+
+	f, err := os.OpenFile(filepath.Join(newCgroup, "cgroup.procs"), os.O_RDWR, 0755)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	for _, pid := range bytes.Split(processes, []byte("\n")) {
+		if _, err := f.Write(pid); err != nil {
+			logrus.Warnf("Cannot move process %s to cgroup %q", pid, newCgroup)
+		}
+	}
+	return nil
 
 }
 

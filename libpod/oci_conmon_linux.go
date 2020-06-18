@@ -881,6 +881,12 @@ func (r *ConmonOCIRuntime) createOCIContainer(ctr *Container, restoreOptions *Co
 		return err
 	}
 
+	if ctr.config.CgroupsMode == conmonDelegated {
+		if err := utils.MoveToCgroup2(ctr.CgroupParent(), "supervisor"); err != nil {
+			return err
+		}
+	}
+
 	args := r.sharedConmonArgs(ctr, ctr.ID(), ctr.bundlePath(), filepath.Join(ctr.state.RunDir, "pidfile"), ctr.LogPath(), r.exitsDir, ociLog, ctr.LogDriver(), logTag)
 
 	if ctr.config.Spec.Process.Terminal {
@@ -1258,7 +1264,15 @@ func (r *ConmonOCIRuntime) moveConmonToCgroupAndSignal(ctr *Container, cmd *exec
 	case "disabled", "no-conmon":
 		mustCreateCgroup = false
 	case conmonDelegated:
-		groupManager = config.CgroupfsCgroupsManager
+	        unified, err := cgroups.IsCgroup2UnifiedMode()
+	        if err != nil {
+	                return err
+	        }
+		if (unified) {
+			mustCreateCgroup = false
+		} else {
+			groupManager = config.CgroupfsCgroupsManager
+		}
 	default:
 		// $INVOCATION_ID is set by systemd when running as a service.
 		if os.Getenv("INVOCATION_ID") != "" {
