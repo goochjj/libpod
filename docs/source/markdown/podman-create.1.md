@@ -80,7 +80,7 @@ If the host uses cgroups v1, the default is set to **host**.  On cgroups v2 the 
 Determines whether the container will create CGroups.
 Valid values are *enabled*, *disabled*, *no-conmon*, which the default being *enabled*.
 The *disabled* option will force the container to not create CGroups, and thus conflicts with CGroup options (**--cgroupns** and **--cgroup-parent**).
-The *no-conmon* option disables a new CGroup only for the conmon process.
+The *no-conmon* option disables a new CGroup only for the conmon process.  The *conmon-delegated* option reuses the current cgroup for both the conmon and the container payload, it works only on cgroup v2.
 
 **--cgroup-parent**=*path*
 

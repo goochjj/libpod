@@ -56,7 +56,7 @@ func GetCreateFlags(cf *ContainerCLIOpts) *pflag.FlagSet {
 	createFlags.StringVar(
 		&cf.CGroupsMode,
 		"cgroups", containerConfig.Cgroups(),
-		`control container cgroup configuration ("enabled"|"disabled"|"no-conmon")`,
+		`control container cgroup configuration ("enabled"|"disabled"|"no-conmon"|"conmon-delegated")`,
 	)
 	createFlags.StringVar(
 		&cf.CGroupParent,
