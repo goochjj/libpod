@@ -13,6 +13,7 @@ import (
 	"github.com/containers/libpod/libpod/events"
 	"github.com/containers/libpod/pkg/cgroups"
 	"github.com/containers/libpod/pkg/rootless"
+	"github.com/containers/libpod/utils"
 	"github.com/containers/storage/pkg/stringid"
 	"github.com/docker/go-units"
 	spec "github.com/opencontainers/runtime-spec/specs-go"
@@ -233,9 +234,15 @@ func (r *Runtime) setupContainer(ctx context.Context, ctr *Container) (_ *Contai
 						return nil, errors.Wrapf(err, "error retrieving pod %s cgroup", pod.ID())
 					}
 					ctr.config.CgroupParent = podCgroup
-				case rootless.IsRootless() && ctr.config.CgroupsMode != conmonDelegated:
+				case ctr.config.CgroupsMode == conmonDelegated:
+					selfCgroup, err := utils.GetPidCgroup(0)
+					if err != nil {
+						return nil, errors.Wrapf(err, "error retrieving process cgroup")
+					}
+					ctr.config.CgroupParent = selfCgroup
+				case rootless.IsRootless():
 					ctr.config.CgroupParent = SystemdDefaultRootlessCgroupParent
-				case ctr.config.CgroupsMode != conmonDelegated:
+				default:
 					ctr.config.CgroupParent = SystemdDefaultCgroupParent
 				}
 			} else if len(ctr.config.CgroupParent) < 6 || !strings.HasSuffix(path.Base(ctr.config.CgroupParent), ".slice") {

@@ -1088,6 +1088,9 @@ func (c *Container) CGroupPath() (string, error) {
 	case config.CgroupfsCgroupsManager:
 		return filepath.Join(c.config.CgroupParent, fmt.Sprintf("libpod-%s", c.ID())), nil
 	case config.SystemdCgroupsManager:
+		if c.config.CgroupsMode == conmonDelegated {
+			return filepath.Join(c.config.CgroupParent, "container"), nil
+		}
 		if rootless.IsRootless() {
 			uid := rootless.GetRootlessUID()
 			parts := strings.SplitN(c.config.CgroupParent, "/", 2)

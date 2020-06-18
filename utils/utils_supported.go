@@ -4,11 +4,8 @@ package utils
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/containers/libpod/pkg/cgroups"
@@ -16,7 +13,6 @@ import (
 	systemdDbus "github.com/coreos/go-systemd/v22/dbus"
 	"github.com/godbus/dbus/v5"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // RunUnderSystemdScope adds the specified pid to a systemd scope

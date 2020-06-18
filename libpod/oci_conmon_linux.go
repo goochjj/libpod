@@ -1258,15 +1258,6 @@ func (r *ConmonOCIRuntime) moveConmonToCgroupAndSignal(ctr *Container, cmd *exec
 	case "disabled", "no-conmon":
 		mustCreateCgroup = false
 	case conmonDelegated:
-		if cgroupParent == "" {
-			selfCgroup, err := utils.GetPidCgroup(0)
-			if err != nil {
-				logrus.Warnf("Failed to detect cgroup for conmon: %v", err)
-				mustCreateCgroup = false
-			} else {
-	                        cgroupParent = selfCgroup
-			}
-                }
 		groupManager = config.CgroupfsCgroupsManager
 	default:
 		// $INVOCATION_ID is set by systemd when running as a service.
