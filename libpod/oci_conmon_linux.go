@@ -372,11 +372,6 @@ func (r *ConmonOCIRuntime) StartContainer(ctr *Container) error {
 		return err
 	}
 	env := []string{fmt.Sprintf("XDG_RUNTIME_DIR=%s", runtimeDir)}
-	if ctr.config.SdNotifyMode == define.SdNotifyModeContainer {
-		if notify, ok := os.LookupEnv("NOTIFY_SOCKET"); ok {
-			env = append(env, fmt.Sprintf("NOTIFY_SOCKET=%s", notify))
-		}
-	}
 	if path, ok := os.LookupEnv("PATH"); ok {
 		env = append(env, fmt.Sprintf("PATH=%s", path))
 	}
