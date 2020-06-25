@@ -1366,6 +1366,9 @@ func (c *Container) makeBindMounts() error {
 				return errors.Wrapf(err, "unable to create notify %q dir", notifyDir)
 			}
 		}
+		if err := label.Relabel(notifyDir, c.MountLabel(), true); err != nil {
+			return errors.Wrapf(err, "relabel failed %q", notifyDir)
+		}
 		logrus.Debugf("add bindmount notify %q dir", notifyDir)
 		if _, ok := c.state.BindMounts["/run/notify"]; !ok {
 			c.state.BindMounts["/run/notify"] = notifyDir
