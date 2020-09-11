@@ -1278,11 +1278,6 @@ func (r *ConmonOCIRuntime) configureConmonEnv(ctr *Container, runtimeDir string)
 	env = append(env, fmt.Sprintf("HOME=%s", home))
 
 	extraFiles := make([]*os.File, 0)
-	if ctr.config.SdNotifyMode == define.SdNotifyModeContainer {
-		if notify, ok := os.LookupEnv("NOTIFY_SOCKET"); ok {
-			env = append(env, fmt.Sprintf("NOTIFY_SOCKET=%s", notify))
-		}
-	}
 	if !r.sdNotify {
 		if listenfds, ok := os.LookupEnv("LISTEN_FDS"); ok {
 			env = append(env, fmt.Sprintf("LISTEN_FDS=%s", listenfds), "LISTEN_PID=1")
@@ -1315,6 +1310,12 @@ func (r *ConmonOCIRuntime) sharedConmonArgs(ctr *Container, cuuid, bundlePath, p
 			rFlags = append(rFlags, "--runtime-arg", arg)
 		}
 		args = append(args, rFlags...)
+	}
+
+	if ctr.config.SdNotifyMode == define.SdNotifyModeContainer {
+		if notify, ok := os.LookupEnv("NOTIFY_SOCKET"); ok {
+			args = append(args, fmt.Sprintf("--sdnotify-socket=%s", notify))
+		}
 	}
 
 	if r.cgroupManager == config.SystemdCgroupsManager && !ctr.config.NoCgroups && ctr.config.CgroupsMode != cgroupSplit {
